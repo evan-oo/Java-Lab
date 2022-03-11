@@ -1,9 +1,12 @@
 package base;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
 public class TestLab2 {
 
 		public static void main(String args[]){
-			
+			/*
 			NoteBook nb = new NoteBook();
 			boolean b;
 			int numSucceed = 0;
@@ -39,5 +42,18 @@ public class TestLab2 {
 			for(Folder f : nb.getFolders()){
 				System.out.println(f.toString());
 			}
+			*/
+			ArrayList<Integer> a = new ArrayList<>();
+			ArrayList<Integer> b = new ArrayList<>();
+			for(int i = 0; i < 5; i++) {
+				a.add(i);
+			}
+			for(int i: a) {
+				b.add(i);
+			}
+			b.set(2, 133);
+			b.remove(4);
+			System.out.println(a.toString());
+			System.out.println(b.toString());
 		}
 	}

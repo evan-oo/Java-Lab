@@ -1,9 +1,11 @@
 package base;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Objects;
+import java.util.List;
 
-public class Folder {
+public class Folder implements Comparable<Folder>{
 
 	private ArrayList<Note> notes;
 	private String name;
@@ -51,5 +53,55 @@ public class Folder {
 				nImage++;
 		}
 		return name + ":" + nText + ":" + nImage;
+	}
+	
+	public int compareTo(Folder o) {
+		return this.name.compareTo(o.name);
+	}
+	
+	public void sortNotes() {
+		Collections.sort(notes);
+	}
+	
+	public List<Note> searchNotes(String keywords){
+		// keywords ¡§java or LAB attendance OR SESSION¡¨
+		String[] a = keywords.split(" ");
+		ArrayList<Note> output1 = new ArrayList<>();
+		Boolean or = false;
+		
+		for(Note i: notes) {
+			ArrayList<Boolean> con = new ArrayList<>();
+			for(String j: a) {
+				
+				if(i.getTitle().toLowerCase().contains(j.toLowerCase())) {
+					con.add(true);
+				}else if(i instanceof TextNote) {
+					if(((TextNote) i).content.toLowerCase().contains(j.toLowerCase())){
+						con.add(true);
+					}else
+						con.add(false);
+				}else
+					con.add(false);
+			}
+			
+			for(int j = 0 ; j < a.length; j++) {
+				if(a[j].equalsIgnoreCase("or")) {
+					if(con.get(j-1) || con.get(j+1)) {
+						or = true;
+						j++;
+						continue;
+					}else {
+						or = false;
+						break;
+					}
+				}
+				or = con.get(j);
+			}
+			
+			if(or)
+				output1.add(i);
+		}
+		
+		return output1;
 	}
 }
