@@ -68,6 +68,7 @@ public class Folder implements Comparable<Folder>{
 		String[] a = keywords.split(" ");
 		ArrayList<Note> output1 = new ArrayList<>();
 		Boolean or = false;
+		Boolean k = false;
 		
 		for(Note i: notes) {
 			ArrayList<Boolean> con = new ArrayList<>();
@@ -94,8 +95,13 @@ public class Folder implements Comparable<Folder>{
 						or = false;
 						break;
 					}
-				}
-				or = con.get(j);
+				}else if(a[j+1].equalsIgnoreCase("or")) {
+					continue;
+				}else if(!con.get(j)) {
+					or = false;
+					break;
+				}else
+					or = true;										
 			}
 			
 			if(or)
