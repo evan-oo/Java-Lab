@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.List;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
-public class Folder implements Comparable<Folder>{
+public class Folder implements Comparable<Folder>, Serializable{
 
 	private ArrayList<Note> notes;
 	private String name;
@@ -109,5 +112,26 @@ public class Folder implements Comparable<Folder>{
 		}
 		
 		return output1;
+	}
+	
+	/**
+	* method to save the NoteBook instance to file
+	*
+	* @param file, the path of the file where to save the object serialization
+	* @return true if save on file is successful, false otherwise
+	*/
+	public boolean save(String file) {
+		FileOutputStream fos = null;
+		ObjectOutputStream out = null;
+		
+		try {
+			fos = new FileOutputStream(file);
+			out = new ObjectOutputStream(fos);
+			out.writeObject(this);
+			out.close();
+		}catch(Exception e) {	
+			return false;
+		}
+		return true;
 	}
 }

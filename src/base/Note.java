@@ -1,9 +1,12 @@
 package base;
 
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
 import java.util.Date ;
 import java.util.Objects;
+import java.io.Serializable;
 
-public class Note implements Comparable<Note>{
+public class Note implements Comparable<Note>, Serializable{
 
 	private Date date ;
 	private String title ;
@@ -53,5 +56,24 @@ public class Note implements Comparable<Note>{
 		return date.toString() + "\t" + title;
 	}
 	
-	
+	/**
+	* method to save the NoteBook instance to file
+	*
+	* @param file, the path of the file where to save the object serialization
+	* @return true if save on file is successful, false otherwise
+	*/
+	public boolean save(String file) {
+		FileOutputStream fos = null;
+		ObjectOutputStream out = null;
+		
+		try {
+			fos = new FileOutputStream(file);
+			out = new ObjectOutputStream(fos);
+			out.writeObject(this);
+			out.close();
+		}catch(Exception e) {	
+			return false;
+		}
+		return true;
+	}
 }
