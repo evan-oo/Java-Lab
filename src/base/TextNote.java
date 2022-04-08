@@ -37,7 +37,11 @@ public class TextNote extends Note {
 		super(f.getName());
 		this.content = getTextFromFile(f.getAbsolutePath());
 	}
-	
+
+
+	public String getContent(){
+		return this.content;
+	}
 	/**
 	* get the content of a file
 	*
