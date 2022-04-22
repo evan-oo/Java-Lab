@@ -1,12 +1,9 @@
 package base;
 
+import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
-import base.Folder;
-import base.Note;
-import base.NoteBook;
-import base.TextNote;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -16,17 +13,14 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 /**
@@ -68,6 +62,10 @@ public class NoteBookWindow extends Application {
      */
     String currentSearch = "";
 
+    String currentNote = "";
+
+    Stage stage;
+
     public static void main(String[] args) {
         launch(NoteBookWindow.class, args);
     }
@@ -101,10 +99,55 @@ public class NoteBookWindow extends Application {
 
         Button buttonLoad = new Button("Load");
         buttonLoad.setPrefSize(100, 20);
-        buttonLoad.setDisable(true);
+        //buttonLoad.setDisable(true);
+        buttonLoad.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                FileChooser fileChooser = new FileChooser();
+                fileChooser.setTitle("Please Choose An File Which Contains a Notebook Object!");
+
+                FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Serialized Object File (*.ser)", "*.ser");
+                fileChooser.getExtensionFilters().add(extFilter);
+
+                File file = fileChooser.showOpenDialog(stage);
+
+                if(file != null){
+                    //NoteBook nb = new NoteBook(file);
+                    loadNotebook(file);
+                }
+            }
+        });
         Button buttonSave = new Button("Save");
         buttonSave.setPrefSize(100, 20);
-        buttonSave.setDisable(true);
+        //buttonSave.setDisable(true);
+        buttonSave.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                FileChooser fileChooser = new FileChooser();
+                fileChooser.setTitle("Please Choose An File Which Contains a Notebook Object!");
+
+                FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Serialized Object File (*.ser)", "*.ser");
+                fileChooser.getExtensionFilters().add(extFilter);
+
+                File file = fileChooser.showOpenDialog(stage);
+
+                if(file != null){
+                    //NoteBook nb = new NoteBook(file);
+                    if(noteBook.save(file.getName())){
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Successfully saved");
+                        alert.setContentText("You file has been saved to file "
+                                + file.getName());
+                        alert.showAndWait().ifPresent(rs -> {
+                            if (rs == ButtonType.OK) {
+                                System.out.println("Pressed OK.");
+                            }
+                        });
+                    }else
+                        System.out.println("Save Failed");
+                }
+            }
+        });
 
         hbox.getChildren().addAll(buttonLoad, buttonSave);
 
@@ -119,6 +162,8 @@ public class NoteBookWindow extends Application {
                 updateListView();
             }
         });
+
+
         Button buttonRemove = new Button("Clear Search");
         buttonRemove.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -168,6 +213,57 @@ public class NoteBookWindow extends Application {
 
         foldersComboBox.setValue("-----");
 
+        Button buttonAddFolder = new Button("Add a Folder");
+        buttonAddFolder.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                TextInputDialog dialog = new TextInputDialog("Add a Folder");
+                dialog.setTitle("Input");
+                dialog.setHeaderText("Add a new folder for your notebook:");
+                dialog.setContentText("Please enter the name you want to create:");
+                Optional<String> result = dialog.showAndWait();
+                if(result.isPresent()){
+                    String newFolderName = result.get();
+                    Boolean wrongName = false ;
+                    if(newFolderName.equals("")){
+                        Alert alert = new Alert(Alert.AlertType.WARNING);
+                        alert.setTitle("Warning");
+                        alert.setContentText("Please input an valid folder name");
+                        alert.showAndWait().ifPresent(rs -> {
+                            if (rs == ButtonType.OK) {
+                                System.out.println("Pressed OK.");
+                            }
+                        });
+                        wrongName = true ;
+                    }else{
+                        for(Folder f: noteBook.getFolders()){
+                            if(newFolderName.equals(f.getName())){
+                                Alert alert = new Alert(Alert.AlertType.WARNING);
+                                alert.setTitle("Warning");
+                                alert.setContentText("You already have a folder named with "+f.getName());
+                                alert.showAndWait().ifPresent(rs -> {
+                                    if (rs == ButtonType.OK) {
+                                        System.out.println("Pressed OK.");
+                                    }
+                                });
+                                wrongName = true;
+                                break;
+                            }
+                        }
+                    }
+                    if(!wrongName){
+                        noteBook.addFolder(newFolderName);
+                        foldersComboBox.getItems().add(newFolderName);
+                        updateListView();
+                    }
+
+                }
+            }
+        });
+
+        HBox hBox2 = new HBox(foldersComboBox, buttonAddFolder);
+        hBox2.setSpacing(8);
+
         titleslistView.setPrefHeight(100);
 
         titleslistView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Object>() {
@@ -184,6 +280,7 @@ public class NoteBookWindow extends Application {
                     if(i.getName().equals(currentFolder)){
                         for(Note j: i.getNotes()){
                             if(j.getTitle().equals(title)){
+                                currentNote = title;
                                 content = ((TextNote)j).content;
                             }
                         }
@@ -193,10 +290,84 @@ public class NoteBookWindow extends Application {
 
             }
         });
+
+        Button buttonAddNote = new Button("Add a Note");
+        buttonAddNote.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                if(currentFolder.equals("-----")){
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Warning");
+                    alert.setContentText("Please choose a folder first!");
+                    alert.showAndWait().ifPresent(rs -> {
+                        if (rs == ButtonType.OK) {
+                            System.out.println("Pressed OK.");
+                        }
+                    });
+                }else{
+                    TextInputDialog dialog = new TextInputDialog("Add a Note");
+                    dialog.setTitle("Input");
+                    dialog.setHeaderText("Add a new note to current folder");
+                    dialog.setContentText("Please enter the name you note:");
+
+                    Optional<String> result = dialog.showAndWait();
+                    String newNoteName = result.get();
+                    if(newNoteName.equals(""))
+                    {
+                        Alert alert = new Alert(Alert.AlertType.WARNING);
+                        alert.setTitle("Warning");
+                        alert.setContentText("Please input an valid folder name");
+                        alert.showAndWait().ifPresent(rs -> {
+                            if (rs == ButtonType.OK) {
+                                System.out.println("Pressed OK.");
+                            }
+                        });
+                    }
+                    else
+                    {
+                        Boolean wrongName = false;
+                        for(Folder i: noteBook.getFolders()){
+                            if(i.getName().equals(currentFolder)){
+                                for(Note j: i.getNotes()){
+                                    if(newNoteName.equals(j.getTitle())){
+                                        Alert alert = new Alert(Alert.AlertType.WARNING);
+                                        alert.setTitle("Warning");
+                                        alert.setContentText("Please input an valid folder name");
+                                        alert.showAndWait().ifPresent(rs -> {
+                                            if (rs == ButtonType.OK) {
+                                                System.out.println("Pressed OK.");
+                                            }
+                                        });
+                                        wrongName = true;
+                                    }
+                                }
+                            }
+                        }
+                        if(!wrongName){
+                            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                            alert.setTitle("Successful!");
+                            alert.setHeaderText("Message");
+                            alert.setContentText("Insert note " + newNoteName + " to folder " + currentFolder + " successfully!");
+                            alert.showAndWait().ifPresent(rs -> {
+                                if (rs == ButtonType.OK) {
+                                    System.out.println("Pressed OK.");
+                                }
+                            });
+                            noteBook.createTextNote(currentFolder, newNoteName);
+                            updateListView();
+                        }
+
+                    }
+                }
+            }
+        });
+
         vbox.getChildren().add(new Label("Choose folder: "));
-        vbox.getChildren().add(foldersComboBox);
+        //vbox.getChildren().add(foldersComboBox);
+        vbox.getChildren().add(hBox2);
         vbox.getChildren().add(new Label("Choose note title"));
         vbox.getChildren().add(titleslistView);
+        vbox.getChildren().add(buttonAddNote);
 
         return vbox;
     }
@@ -250,13 +421,88 @@ public class NoteBookWindow extends Application {
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(10, 10, 10, 10));
-        textAreaNote.setEditable(false);
+
+        HBox hBox = new HBox();
+        hBox.setSpacing(8);
+        hBox.setPadding(new Insets(8));
+        ImageView saveView = new ImageView(new Image(new File("save.png").toURI().toString()));
+        saveView.setFitHeight(18);
+        saveView.setFitWidth(18);
+        saveView.setPreserveRatio(true);
+        ImageView deleteView = new ImageView(new Image(new File("delete.png").toURI().toString()));
+        deleteView.setFitHeight(18);
+        deleteView.setFitWidth(18);
+        deleteView.setPreserveRatio(true);
+        Button buttonSave = new Button("Save Note");
+        buttonSave.setPrefSize(100, 20);
+        buttonSave.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                if((!currentFolder.equals("-----")) && (!currentNote.equals(""))){
+                    for(Folder i: noteBook.getFolders()){
+                        if(i.getName().equals(currentFolder)){
+                            for(Note j: i.getNotes()){
+                                ((TextNote)j).content = textAreaNote.getText();
+                            }
+                        }
+                    }
+                }else{
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Warning");
+                    alert.setContentText("Please select a folder and a note");
+                    alert.showAndWait().ifPresent(rs -> {
+                        if (rs == ButtonType.OK) {
+                            System.out.println("Pressed OK.");
+                        }
+                    });
+                }
+            }
+        });
+        Button buttonDelete = new Button("Delete Note");
+        buttonDelete.setPrefSize(100, 20);
+        buttonDelete.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                if((!currentFolder.equals("-----")) && (!currentNote.equals(""))){
+                    for(Folder i: noteBook.getFolders()){
+                        if(i.getName().equals(currentFolder)){
+                            if(i.removeNotes(currentNote)){
+                                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                                alert.setTitle("Succeed");
+                                alert.setContentText("Your note has been successfully removed");
+                                alert.showAndWait().ifPresent(rs -> {
+                                    if (rs == ButtonType.OK) {
+                                        System.out.println("Pressed OK.");
+                                    }
+                                });
+                                updateListView();
+                            }else{
+                                System.out.println("removeNotes fail");
+                            }
+                        }
+                    }
+                }else{
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Warning");
+                    alert.setContentText("Please select a folder and a note");
+                    alert.showAndWait().ifPresent(rs -> {
+                        if (rs == ButtonType.OK) {
+                            System.out.println("Pressed OK.");
+                        }
+                    });
+                }
+            }
+        });
+        hBox.getChildren().addAll(saveView, buttonSave, deleteView, buttonDelete);
+
+        textAreaNote.setEditable(true);
         textAreaNote.setMaxSize(450, 400);
         textAreaNote.setWrapText(true);
         textAreaNote.setPrefWidth(450);
         textAreaNote.setPrefHeight(400);
         // 0 0 is the position in the grid
-        grid.add(textAreaNote, 0, 0);
+        grid.add(hBox, 0,0);
+        grid.add(textAreaNote, 0, 1);
 
         return grid;
     }
@@ -282,4 +528,9 @@ public class NoteBookWindow extends Application {
 
     }
 
+    private void loadNotebook(File file){
+        NoteBook nb = new NoteBook(file.getName());
+        noteBook = nb;
+        updateListView();
+    }
 }

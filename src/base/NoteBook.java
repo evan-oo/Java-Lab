@@ -114,4 +114,9 @@ public class NoteBook implements Serializable{
 			e.printStackTrace();
 		}
 	}
+
+	public void addFolder(String folderName){
+		Folder newFolder = new Folder(folderName);
+		folders.add(newFolder);
+	}
 }
