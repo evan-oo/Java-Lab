@@ -228,7 +228,7 @@ public class NoteBookWindow extends Application {
                     if(newFolderName.equals("")){
                         Alert alert = new Alert(Alert.AlertType.WARNING);
                         alert.setTitle("Warning");
-                        alert.setContentText("Please input an valid folder name");
+                        alert.setContentText("Please input a valid folder name");
                         alert.showAndWait().ifPresent(rs -> {
                             if (rs == ButtonType.OK) {
                                 System.out.println("Pressed OK.");
@@ -316,7 +316,7 @@ public class NoteBookWindow extends Application {
                     {
                         Alert alert = new Alert(Alert.AlertType.WARNING);
                         alert.setTitle("Warning");
-                        alert.setContentText("Please input an valid folder name");
+                        alert.setContentText("Please input a valid note name");
                         alert.showAndWait().ifPresent(rs -> {
                             if (rs == ButtonType.OK) {
                                 System.out.println("Pressed OK.");
@@ -332,7 +332,7 @@ public class NoteBookWindow extends Application {
                                     if(newNoteName.equals(j.getTitle())){
                                         Alert alert = new Alert(Alert.AlertType.WARNING);
                                         alert.setTitle("Warning");
-                                        alert.setContentText("Please input an valid folder name");
+                                        alert.setContentText("You already have a note named with "+j.getTitle());
                                         alert.showAndWait().ifPresent(rs -> {
                                             if (rs == ButtonType.OK) {
                                                 System.out.println("Pressed OK.");
